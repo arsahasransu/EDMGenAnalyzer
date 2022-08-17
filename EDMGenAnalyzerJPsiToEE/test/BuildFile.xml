@@ -1,0 +1,7 @@
+<use name="FWCore/Framework"/>
+<use name="root"/>
+<use name="SimDataFormats/GeneratorProducts"/>
+<use name="CommonTools/UtilAlgos"/>
+<library file="JPsiToEEGenAnalyzer.cc" name="JPsiToEEGenExampleAnalyzer">
+  <flags EDM_PLUGIN="1"/>
+</library>
