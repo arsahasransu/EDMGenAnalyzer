@@ -1,0 +1,1 @@
+Analyzer to study GEN information for files in the CMSSW EDM framework.
