@@ -1,4 +1,6 @@
 *.root
 *~
 *__init__.py
-*__pycache__/*
+*__pycache__*
+*.log
+*JPsiToEE_Pt2To30_13p6TeV_TuneCP5_pythia8_crab*

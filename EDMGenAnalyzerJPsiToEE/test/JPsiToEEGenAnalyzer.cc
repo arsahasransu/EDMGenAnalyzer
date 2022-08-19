@@ -22,15 +22,16 @@ public:
   //
   explicit JPsiToEEGenAnalyzer(const edm::ParameterSet&);
   ~JPsiToEEGenAnalyzer() = default;  // no need to delete ROOT stuff
-                                // as it'll be deleted upon closing TFile
-
+  // as it'll be deleted upon closing TFile
+  
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void beginJob() override;
-
+  
 private:
   const edm::EDGetTokenT<GenEventInfoProduct> tokenGenInfo_;
   const edm::EDGetTokenT< std::vector<reco::GenParticle> > tokenGenPart_;
   TH1D* fHistjpsinum;
+  TH1D* fHistjpsigenstat;
   TH1D* fHistjpsipt;
   TH1D* fHistFSelnum;
   TH1D* fHisteeMass;
@@ -43,22 +44,58 @@ private:
   TH1D* fHistsubleadept;
   TH1D* fHistsubleadeeta;
   TH1D* fHistsubleadephi;
+  TH1D* fHistleadesubleadeMass;
+  TH1D* fHistleadesubleadedeltaEta;
+  TH1D* fHistleadesubleadedeltaPhi;
+  TH1D* fHistleadesubleadedeltaR;
+  TH1D* fHistPtGt2leadept;
+  TH1D* fHistPtGt2leadeeta;
+  TH1D* fHistPtGt2leadephi;
+  TH1D* fHistPtGt2subleadept;
+  TH1D* fHistPtGt2subleadeeta;
+  TH1D* fHistPtGt2subleadephi;
+  TH1D* fHistPtGt2leadesubleadeMass;
+  TH1D* fHistPtGt2leadesubleadedeltaEta;
+  TH1D* fHistPtGt2leadesubleadedeltaPhi;
+  TH1D* fHistPtGt2leadesubleadedeltaR;
+
 };
 
 JPsiToEEGenAnalyzer::JPsiToEEGenAnalyzer(const edm::ParameterSet& pset)
-    : tokenGenInfo_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
-      tokenGenPart_(consumes< std::vector<reco::GenParticle> >(edm::InputTag("genParticles"))),
-      fHistjpsinum(nullptr),
-      fHistjpsipt(nullptr),
-      fHistFSelnum(nullptr),
-      fHisteeMass(nullptr),
-      fHistept(nullptr),
-      fHisteeta(nullptr),
-      fHistephi(nullptr),
-      fHistleadept(nullptr) {
+  : tokenGenInfo_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
+    tokenGenPart_(consumes< std::vector<reco::GenParticle> >(edm::InputTag("genParticles"))),
+    fHistjpsinum(nullptr),
+    fHistjpsipt(nullptr),
+    fHistFSelnum(nullptr),
+    fHisteeMass(nullptr),
+    fHistept(nullptr),
+    fHisteeta(nullptr),
+    fHistephi(nullptr),
+    fHistleadept(nullptr),
+    fHistleadeeta(nullptr),
+    fHistleadephi(nullptr),
+    fHistsubleadept(nullptr),
+    fHistsubleadeeta(nullptr),
+  fHistsubleadephi(nullptr),
+  fHistleadesubleadeMass(nullptr),
+  fHistleadesubleadedeltaEta(nullptr),
+  fHistleadesubleadedeltaPhi(nullptr),
+  fHistleadesubleadedeltaR(nullptr),
+  fHistPtGt2leadept(nullptr),
+  fHistPtGt2leadeeta(nullptr),
+  fHistPtGt2leadephi(nullptr),
+  fHistPtGt2subleadept(nullptr),
+  fHistPtGt2subleadeeta(nullptr),
+  fHistPtGt2subleadephi(nullptr),
+  fHistPtGt2leadesubleadeMass(nullptr),
+  fHistPtGt2leadesubleadedeltaEta(nullptr),
+  fHistPtGt2leadesubleadedeltaPhi(nullptr),
+  fHistPtGt2leadesubleadedeltaR(nullptr) {
+
   // actually, pset is NOT in use - we keep it here just for illustratory putposes
   usesResource(TFileService::kSharedResource);
-}
+  
+  }
 
 void JPsiToEEGenAnalyzer::beginJob() {
   edm::Service<TFileService> fs;
@@ -67,15 +104,26 @@ void JPsiToEEGenAnalyzer::beginJob() {
   fHistFSelnum = fs->make<TH1D>("HistFSelnum", "final state electron multiplicity", 100, 0, 100.);
   fHisteeMass = fs->make<TH1D>("HisteeMass", "2-e inv. mass", 10000, 0, 100.);
   fHistept = fs->make<TH1D>("Histept", "electron pt", 1000, 0., 100.);
+  fHisteeta = fs->make<TH1D>("Histeeta", "electron eta", 1000, -5., 5.);
+  fHistephi = fs->make<TH1D>("Histephi", "electron phi", 1000, -5, 5.);
   fHistleadept = fs->make<TH1D>("Histleadept", "lead electron pt", 1000, 0., 100.);
+  fHistleadeeta = fs->make<TH1D>("Histleadeeta", "lead electron eta", 1000, -5., 5.);
+  fHistleadephi = fs->make<TH1D>("Histleadephi", "lead electron phi", 1000, -5., 5.);
+  fHistsubleadept = fs->make<TH1D>("Histsubleadept", "sublead electron pt", 1000, 0., 100.);
+  fHistsubleadeeta = fs->make<TH1D>("Histsubleadeeta", "sublead electron eta", 1000, -5., 5.);
+  fHistsubleadephi = fs->make<TH1D>("Histsubleadephi", "sublead electron phi", 1000, -5., 5.);
+  fHistleadesubleadeMass = fs->make<TH1D>("HistleadesubleadeMass", "M(e_{1}, e_{2})", 10000, 0, 100.);
+  fHistleadesubleadedeltaEta = fs->make<TH1D>("HistleadesubleadedeltaEta", "#Delta#eta(e_{1}, e_{2})", 10000, -5., 5.);
+  fHistleadesubleadedeltaPhi = fs->make<TH1D>("HistleadesubleadedeltaPhi", "#Delta#phi(e_{1}, e_{2})", 10000, -5., 5.);
+  fHistleadesubleadedeltaR = fs->make<TH1D>("HistleadesubleadedeltaR", "#DeltaR(e_{1}, e_{2})", 10000, 0., 10.);
 }
 
 void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
   // here's an example of accessing GenEventInfoProduct
   const edm::Handle<GenEventInfoProduct>& GenInfoHandle = e.getHandle(tokenGenInfo_);
-  double qScale = GenInfoHandle->qScale();
-  double pthat = (GenInfoHandle->hasBinningValues() ? (GenInfoHandle->binningValues())[0] : 0.0);
-  std::cout << " qScale = " << qScale << " pthat = " << pthat << std::endl;
+  //double qScale = GenInfoHandle->qScale();
+  //double pthat = (GenInfoHandle->hasBinningValues() ? (GenInfoHandle->binningValues())[0] : 0.0);
+  //std::cout << " qScale = " << qScale << " pthat = " << pthat << std::endl;
 
   edm::Handle<std::vector<reco::GenParticle>> genPartH;
   e.getByToken(tokenGenPart_, genPartH);
@@ -88,7 +136,7 @@ void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
   if(genPartValid) {
     
     for(auto gen_iter=genPartH->begin(); gen_iter!=genPartH->end(); ++gen_iter) {
-
+      
       if(gen_iter->pdgId()==443) {
 	genJpsicnt++;
 	fHistjpsipt->Fill(gen_iter->pt());
@@ -99,18 +147,65 @@ void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
       }
     }
 
-      fHistjpsinum->Fill(genJpsicnt);
-      fHistFSelnum->Fill(genElFScnt);
+    fHistjpsinum->Fill(genJpsicnt);
+    fHistFSelnum->Fill(genElFScnt);
   }
 
+  int leadFSelpos=-1, subleadFSelpos=-1;
+  //std::cout<<"All electron pt: ";
   for(unsigned int ctr1=0; ctr1<FSelectrons.size(); ctr1++) {
+    //std::cout<<FSelectrons[ctr1]->pt()<<"\t";
     fHistept->Fill(FSelectrons[ctr1]->pt());
+    fHisteeta->Fill(FSelectrons[ctr1]->eta());
+    fHistephi->Fill(FSelectrons[ctr1]->phi());
     for(unsigned int ctr2=ctr1+1; ctr2<FSelectrons.size(); ctr2++) {
       TLorentzVector el1, el2;
       el1.SetPtEtaPhiM(FSelectrons[ctr1]->pt(),FSelectrons[ctr1]->eta(),FSelectrons[ctr1]->phi(),0.0005);
       el2.SetPtEtaPhiM(FSelectrons[ctr2]->pt(),FSelectrons[ctr2]->eta(),FSelectrons[ctr2]->phi(),0.0005);
       fHisteeMass->Fill((el1+el2).M());
     }
+
+    if(leadFSelpos!=-1 && subleadFSelpos==-1) {
+      subleadFSelpos = ctr1;
+    }
+    if(leadFSelpos==-1) {
+      leadFSelpos = ctr1;
+    }
+    if(leadFSelpos!=-1 && FSelectrons[ctr1]->pt()>FSelectrons[leadFSelpos]->pt()) {
+      subleadFSelpos = leadFSelpos;
+      leadFSelpos = ctr1;
+    }
+    if(subleadFSelpos!=-1 && FSelectrons[ctr1]->pt()<FSelectrons[leadFSelpos]->pt() && FSelectrons[ctr1]->pt()>FSelectrons[subleadFSelpos]->pt()) {
+      subleadFSelpos = ctr1;
+    }
+  }
+  //std::cout<<std::endl;
+
+  if(leadFSelpos!=-1) {
+    fHistleadept->Fill(FSelectrons[leadFSelpos]->pt());
+    fHistleadeeta->Fill(FSelectrons[leadFSelpos]->eta());
+    fHistleadephi->Fill(FSelectrons[leadFSelpos]->phi());
+    if(FSelectrons[leadFSelpos]->pt()>2) {
+      fHistPtGt2leadept->Fill(FSelectrons[leadFSelpos]->pt());
+      fHistPtGt2leadeeta->Fill(FSelectrons[leadFSelpos]->eta());
+      fHistPtGt2leadephi->Fill(FSelectrons[leadFSelpos]->phi());
+    }
+  }
+
+  if(subleadFSelpos!=-1) {
+    //std::cout<<"Lead and sub-lead pt: "<<FSelectrons[leadFSelpos]->pt()<<"\t"<<FSelectrons[subleadFSelpos]->pt()<<std::endl;
+    fHistsubleadept->Fill(FSelectrons[subleadFSelpos]->pt());
+    fHistsubleadeeta->Fill(FSelectrons[subleadFSelpos]->eta());
+    fHistsubleadephi->Fill(FSelectrons[subleadFSelpos]->phi());
+
+    TLorentzVector ellead, elsublead;
+    ellead.SetPtEtaPhiM(FSelectrons[leadFSelpos]->pt(),FSelectrons[leadFSelpos]->eta(),FSelectrons[leadFSelpos]->phi(),0.0005);
+    elsublead.SetPtEtaPhiM(FSelectrons[subleadFSelpos]->pt(),FSelectrons[subleadFSelpos]->eta(),FSelectrons[subleadFSelpos]->phi(),0.0005);
+    fHistleadesubleadeMass->Fill((ellead+elsublead).M());
+    fHistleadesubleadedeltaEta->Fill(FSelectrons[leadFSelpos]->eta(),FSelectrons[subleadFSelpos]->eta());
+    fHistleadesubleadedeltaPhi->Fill(ellead.DeltaPhi(elsublead));
+    fHistleadesubleadedeltaR->Fill(ellead.DeltaR(elsublead));
+
   }
 
   FSelectrons.clear();
