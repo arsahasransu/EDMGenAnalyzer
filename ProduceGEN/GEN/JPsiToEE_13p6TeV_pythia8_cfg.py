@@ -2,12 +2,12 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: Configuration/Generator/python/JpsiEE_Pt_2_30_13p6TeV_TuneCP5_pythia8_cfi.py --fileout file:JPsiToEE_13p6_GEN.root --mc --eventcontent AODSIM --datatier GEN-SIM --conditions auto:mc --step GEN --python_filename JPsiToEE_13p6TeV_pythia8_cfg.py --no_exec -n 500
+# with command line options: Configuration/GenProduction/python/ThirteenPointSixTeV/JpsiEE_Pt_2_30_13p6TeV_TuneCP5_pythia8_cfi.py --fileout file:JPsiToEE_13p6_500_GEN.root --mc --eventcontent RAWSIM --datatier GEN-SIM --conditions auto:phase1_2022_realistic --beamspot Realistic25ns13p6TeVEarly2022Collision --step GEN,SIM --geometry DB:Extended --era Run3 --python_filename JPsiToEE_13p6TeV_pythia8_cfg.py --no_exec -n 500
 import FWCore.ParameterSet.Config as cms
 
+from Configuration.Eras.Era_Run3_cff import Run3
 
-
-process = cms.Process('GEN')
+process = cms.Process('SIM',Run3)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -16,10 +16,12 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
-process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic50ns13TeVCollision_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic25ns13p6TeVEarly2022Collision_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
+process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -63,34 +65,37 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Configuration/Generator/python/JpsiEE_Pt_2_30_13p6TeV_TuneCP5_pythia8_cfi.py nevts:500'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/ThirteenPointSixTeV/JpsiEE_Pt_2_30_13p6TeV_TuneCP5_pythia8_cfi.py nevts:500'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
 
 # Output definition
 
-process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
+process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     SelectEvents = cms.untracked.PSet(
         SelectEvents = cms.vstring('generation_step')
     ),
     compressionAlgorithm = cms.untracked.string('LZMA'),
-    compressionLevel = cms.untracked.int32(4),
+    compressionLevel = cms.untracked.int32(1),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('GEN-SIM'),
         filterName = cms.untracked.string('')
     ),
-    eventAutoFlushCompressedSize = cms.untracked.int32(31457280),
-    fileName = cms.untracked.string('file:JPsiToEE_13p6_GEN.root'),
-    outputCommands = process.AODSIMEventContent.outputCommands
+    eventAutoFlushCompressedSize = cms.untracked.int32(20971520),
+    fileName = cms.untracked.string('file:JPsiToEE_13p6_500_GEN.root'),
+    outputCommands = process.RAWSIMEventContent.outputCommands,
+    splitLevel = cms.untracked.int32(0)
 )
 
 # Additional output definition
 
 # Other statements
+if hasattr(process, "XMLFromDBSource"): process.XMLFromDBSource.label="Extended"
+if hasattr(process, "DDDetectorESProducerFromDB"): process.DDDetectorESProducerFromDB.label="Extended"
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2022_realistic', '')
 
 process.oniafilter = cms.EDFilter("PythiaFilter",
     MaxEta = cms.untracked.double(2.5),
@@ -116,7 +121,7 @@ process.elelgenfilter = cms.EDFilter("MCParticlePairFilter",
 )
 
 
-process.generator = cms.EDFilter("Pythia8GeneratorFilter",
+process.generator = cms.EDFilter("Pythia8ConcurrentGeneratorFilter",
     PythiaParameters = cms.PSet(
         parameterSets = cms.vstring(
             'pythia8CommonSettings',
@@ -175,18 +180,15 @@ process.ProductionFilterSequence = cms.Sequence(process.generator+process.oniafi
 
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)
+process.simulation_step = cms.Path(process.psim)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.AODSIMoutput_step = cms.EndPath(process.AODSIMoutput)
+process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.endjob_step,process.AODSIMoutput_step)
+process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.simulation_step,process.endjob_step,process.RAWSIMoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
-
-#Setup FWK for multithreaded
-process.options.numberOfConcurrentLuminosityBlocks = 1
-process.options.eventSetup.numberOfConcurrentIOVs = 1
 # filter all path with the production filter sequence
 for path in process.paths:
 	getattr(process,path).insert(0, process.ProductionFilterSequence)
