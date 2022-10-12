@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+from filesList import inputFileNames
 
 process = cms.Process("Analysis")
 
@@ -14,9 +15,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.load( "SimGeneral.HepPDTESSource.pythiapdt_cfi" )
 
 process.source = cms.Source( "PoolSource",
-                             fileNames = cms.untracked.vstring(
-			     'file:JPsiToEE_13p6_500k_GEN.root'
-			     )
+                             fileNames = cms.untracked.vstring(inputFileNames )
                            )
 	      
 # FileService is mandatory, as the following analyzer module 
