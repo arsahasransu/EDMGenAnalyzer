@@ -12,6 +12,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TLorentzVector.h"
 
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -37,6 +38,7 @@ private:
   TH1D *fHistgoodjpsimult, *fHistgoodjpsigenstat, *fHistgoodjpsipt, *fHistgoodjpsieta, *fHistgoodjpsiphi, *fHistgoodjpsinmoms, *fHistgoodjpsimompdg1, *fHistgoodjpsimompdg2, *fHistgoodjpsinsons, *fHistgoodjpsisonpdg1, *fHistgoodjpsisonpdg2;
   TH1D *fHistFSelnum, *fHistFSelpt, *fHistFSeleta, *fHistFSelphi, *fHistFSleadelpt, *fHistFSleadeleta, *fHistFSleadelphi, *fHistFSsubleadelpt, *fHistFSsubleadeleta, *fHistFSsubleadelphi, *fHistFSel1el2mass, *fHistFSel1el2deta, *fHistFSel1el2dphi, *fHistFSel1el2dr;
   TH1D *fHistFSjpsisonelnum, *fHistFSjpsisonelpt, *fHistFSjpsisoneleta, *fHistFSjpsisonelphi, *fHistFSjpsisonleadelpt, *fHistFSjpsisonleadeleta, *fHistFSjpsisonleadelphi, *fHistFSjpsisonsubleadelpt, *fHistFSjpsisonsubleadeleta, *fHistFSjpsisonsubleadelphi, *fHistFSjpsisonel1el2mass, *fHistFSjpsisonel1el2deta, *fHistFSjpsisonel1el2dphi, *fHistFSjpsisonel1el2dr;
+  TH2D *f2DHistGoodJPsiFSJpsisonleadelE, *f2DHistGoodJPsiFSJpsisonsubleadelE, *f2DHistGoodJPsiFSJpsisonleadelpT, *f2DHistGoodJPsiFSJpsisonsubleadelpT, *f2DHistGoodJPsiEFSJpsisonleadsubleadelDr, *f2DHistGoodJPsiEFSJpsisonleadsubleadelDeta, *f2DHistGoodJPsiEFSJpsisonleadsubleadelDphi, *f2DHistGoodJPsiEFSJpsisonleadsubleadelDpt;
 
 };
 
@@ -46,7 +48,8 @@ JPsiToEEGenAnalyzer::JPsiToEEGenAnalyzer(const edm::ParameterSet& pset) :
   fHistjpsimult(nullptr), fHistjpsigenstat(nullptr), fHistjpsipt(nullptr), fHistjpsieta(nullptr), fHistjpsiphi(nullptr), fHistjpsinmoms(nullptr), fHistjpsimompdg1(nullptr), fHistjpsimompdg2(nullptr), fHistjpsinsons(nullptr), fHistjpsisonpdg1(nullptr), fHistjpsisonpdg2(nullptr),
   fHistgoodjpsimult(nullptr), fHistgoodjpsigenstat(nullptr), fHistgoodjpsipt(nullptr), fHistgoodjpsieta(nullptr), fHistgoodjpsiphi(nullptr), fHistgoodjpsinmoms(nullptr), fHistgoodjpsimompdg1(nullptr), fHistgoodjpsimompdg2(nullptr), fHistgoodjpsinsons(nullptr), fHistgoodjpsisonpdg1(nullptr), fHistgoodjpsisonpdg2(nullptr),
   fHistFSelnum(nullptr), fHistFSelpt(nullptr), fHistFSeleta(nullptr), fHistFSelphi(nullptr), fHistFSleadelpt(nullptr), fHistFSleadeleta(nullptr), fHistFSleadelphi(nullptr), fHistFSsubleadelpt(nullptr), fHistFSsubleadeleta(nullptr), fHistFSsubleadelphi(nullptr), fHistFSel1el2mass(nullptr), fHistFSel1el2deta(nullptr), fHistFSel1el2dphi(nullptr), fHistFSel1el2dr(nullptr),
-  fHistFSjpsisonelnum(nullptr), fHistFSjpsisonelpt(nullptr), fHistFSjpsisoneleta(nullptr), fHistFSjpsisonelphi(nullptr), fHistFSjpsisonleadelpt(nullptr), fHistFSjpsisonleadeleta(nullptr), fHistFSjpsisonleadelphi(nullptr), fHistFSjpsisonsubleadelpt(nullptr), fHistFSjpsisonsubleadeleta(nullptr), fHistFSjpsisonsubleadelphi(nullptr), fHistFSjpsisonel1el2mass(nullptr), fHistFSjpsisonel1el2deta(nullptr), fHistFSjpsisonel1el2dphi(nullptr), fHistFSjpsisonel1el2dr(nullptr) {
+  fHistFSjpsisonelnum(nullptr), fHistFSjpsisonelpt(nullptr), fHistFSjpsisoneleta(nullptr), fHistFSjpsisonelphi(nullptr), fHistFSjpsisonleadelpt(nullptr), fHistFSjpsisonleadeleta(nullptr), fHistFSjpsisonleadelphi(nullptr), fHistFSjpsisonsubleadelpt(nullptr), fHistFSjpsisonsubleadeleta(nullptr), fHistFSjpsisonsubleadelphi(nullptr), fHistFSjpsisonel1el2mass(nullptr), fHistFSjpsisonel1el2deta(nullptr), fHistFSjpsisonel1el2dphi(nullptr), fHistFSjpsisonel1el2dr(nullptr),
+  f2DHistGoodJPsiFSJpsisonleadelE(nullptr), f2DHistGoodJPsiFSJpsisonsubleadelE(nullptr), f2DHistGoodJPsiFSJpsisonleadelpT(nullptr), f2DHistGoodJPsiFSJpsisonsubleadelpT(nullptr), f2DHistGoodJPsiEFSJpsisonleadsubleadelDr(nullptr), f2DHistGoodJPsiEFSJpsisonleadsubleadelDeta(nullptr), f2DHistGoodJPsiEFSJpsisonleadsubleadelDphi(nullptr), f2DHistGoodJPsiEFSJpsisonleadsubleadelDpt(nullptr) {
 
   // actually, pset is NOT in use - we keep it here just for illustratory putposes
   usesResource(TFileService::kSharedResource);
@@ -105,6 +108,14 @@ void JPsiToEEGenAnalyzer::beginJob() {
   fHistFSjpsisonel1el2deta = fs->make<TH1D>("Hist_FSjpsisonel_e1e2deta", "final state #Delta#eta(e_{1},e_{2})", 10000, -5., 5.);
   fHistFSjpsisonel1el2dphi = fs->make<TH1D>("Hist_FSjpsisonel_e1e2dphi", "final state #Delta#phi(e_{1},e_{2})", 10000, -5., 5.);
   fHistFSjpsisonel1el2dr = fs->make<TH1D>("Hist_FSjpsisonel_e1e2dr", "final state #DeltaR(e_{1},e_{2})", 10000, 0., 10.);
+  f2DHistGoodJPsiFSJpsisonleadelE = fs->make<TH2D>("Hist2D_Goodjpsi_FSjpsisonleadel_E", "E_{J/#psi}:E_{e_{1}(J/#psi son)}", 1000, 0., 100., 1000, 0., 100.);
+  f2DHistGoodJPsiFSJpsisonsubleadelE = fs->make<TH2D>("Hist2D_Goodjpsi_FSjpsisonsubleadel_E", "E_{J/#psi}:E_{e_{2}(J/#psi son)}", 1000, 0., 100., 1000, 0., 100.);
+  f2DHistGoodJPsiFSJpsisonleadelpT = fs->make<TH2D>("Hist2D_Goodjpsi_FSjpsisonleadel_pT", "pT_{J/#psi}:pT_{e_{1}(J/#psi son)}", 1000, 0., 100., 1000, 0., 100.);
+  f2DHistGoodJPsiFSJpsisonsubleadelpT = fs->make<TH2D>("Hist2D_Goodjpsi_FSjpsisonsubleadel_pT", "pT_{J/#psi}:pT_{e_{2}(J/#psi son)}", 1000, 0., 100., 1000, 0., 100.);
+  f2DHistGoodJPsiEFSJpsisonleadsubleadelDr = fs->make<TH2D>("Hist2D_Goodjpsi_E_FSjpsisonleadsubleadel_Dr", "E_{J/#psi}:#DeltaR_{e_{1}(J/#psi son), e_{2}(J/#psi son)}", 1000, 0., 100., 10000, 0., 10.);
+  f2DHistGoodJPsiEFSJpsisonleadsubleadelDeta = fs->make<TH2D>("Hist2D_Goodjpsi_E_FSjpsisonleadsubleadel_Deta", "E_{J/#psi}:#Delta#eta_{e_{1}(J/#psi son), e_{2}(J/#psi son)}", 1000, 0., 100., 10000, -5., 5.);
+  f2DHistGoodJPsiEFSJpsisonleadsubleadelDphi = fs->make<TH2D>("Hist2D_Goodjpsi_E_FSjpsisonleadsubleadel_Dphi", "E_{J/#psi}:#Delta#phi_{e_{1}(J/#psi son), e_{2}(J/#psi son)}", 1000, 0., 100., 10000, -5., 5.);
+  f2DHistGoodJPsiEFSJpsisonleadsubleadelDpt = fs->make<TH2D>("Hist2D_Goodjpsi_E_FSjpsisonleadsubleadel_Dpt", "E_{J/#psi}:#DeltapT_{e_{1}(J/#psi son), e_{2}(J/#psi son)}", 1000, 0., 100., 10000, 0., 100.);
 }
 
 void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
@@ -153,7 +164,7 @@ void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
 	  fHistgoodjpsisonpdg1->Fill(gen_iter->daughter(0)->pdgId());
 	  fHistgoodjpsisonpdg2->Fill(gen_iter->daughter(1)->pdgId());
 
-	  oneFSjpsisonel = gen_iter->daughterRef(0)->clone();
+	  oneFSjpsisonel = gen_iter->daughterRef(0)->clone(); // Get the daughter of the JPsi
 	  twoFSjpsisonel = gen_iter->daughterRef(1)->clone();
 	  oneFSjpsisonel = findLastCopyDaughter(oneFSjpsisonel); // Obtain the last copy of the particle
 	  twoFSjpsisonel = findLastCopyDaughter(twoFSjpsisonel);
@@ -164,7 +175,7 @@ void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
 	  fHistFSjpsisoneleta->Fill(twoFSjpsisonel->eta());
 	  fHistFSjpsisonelphi->Fill(oneFSjpsisonel->phi());
 	  fHistFSjpsisonelphi->Fill(twoFSjpsisonel->phi());
-	  TLorentzVector el1, el2;
+	  TLorentzVector el1, el2; // Sort the daughter of Jpsi to leading and sub-leading particles
 	  if(oneFSjpsisonel->pt()>twoFSjpsisonel->pt()) {
 	    el1.SetPtEtaPhiM(oneFSjpsisonel->pt(), oneFSjpsisonel->eta(), oneFSjpsisonel->phi(), oneFSjpsisonel->mass());
 	    el2.SetPtEtaPhiM(twoFSjpsisonel->pt(), twoFSjpsisonel->eta(), twoFSjpsisonel->phi(), twoFSjpsisonel->mass());
@@ -183,6 +194,14 @@ void JPsiToEEGenAnalyzer::analyze(const edm::Event& e, const edm::EventSetup&) {
 	  fHistFSjpsisonel1el2deta->Fill(el1.Eta()-el2.Eta());
 	  fHistFSjpsisonel1el2dphi->Fill(el1.DeltaPhi(el2));
 	  fHistFSjpsisonel1el2dr->Fill(el1.DeltaR(el2));
+	  f2DHistGoodJPsiFSJpsisonleadelE->Fill(gen_iter->energy(), el1.Energy());
+	  f2DHistGoodJPsiFSJpsisonsubleadelE->Fill(gen_iter->energy(), el2.Energy());
+	  f2DHistGoodJPsiFSJpsisonleadelpT->Fill(gen_iter->energy(), el1.Pt());
+	  f2DHistGoodJPsiFSJpsisonsubleadelpT->Fill(gen_iter->energy(), el2.Pt());
+	  f2DHistGoodJPsiEFSJpsisonleadsubleadelDr->Fill(gen_iter->energy(), el1.DeltaR(el2));
+	  f2DHistGoodJPsiEFSJpsisonleadsubleadelDeta->Fill(gen_iter->energy(), el1.Eta()-el2.Eta());
+	  f2DHistGoodJPsiEFSJpsisonleadsubleadelDphi->Fill(gen_iter->energy(), el1.DeltaPhi(el2));
+	  f2DHistGoodJPsiEFSJpsisonleadsubleadelDpt->Fill(gen_iter->energy(), el1.Pt()-el2.Pt());
 	} // End of the good Jpsi condition
       }// End of JPsi 1S gen particle condition
 

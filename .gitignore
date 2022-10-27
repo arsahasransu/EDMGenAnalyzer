@@ -7,3 +7,4 @@
 *.err
 *JPsiToEE_Pt2To30_13p6TeV_TuneCP5_pythia8_crab*
 EDMGenAnalyzerJPsiToEE/test/filesList.py
+ProduceGEN/DIGI_RAW/evtContent_DIGIRAW_corr.txt
